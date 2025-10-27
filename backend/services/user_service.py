@@ -28,3 +28,13 @@ class UserService:
         session.add(new_user)
         await session.commit()
         return new_user
+    
+    async def get_all_users(self, session: AsyncSession, limit: int = 50, offset: int = 0):
+        statement = (
+            select(User)
+            .order_by(User.created_at.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        result = await session.execute(statement)
+        return result.scalars().all()
