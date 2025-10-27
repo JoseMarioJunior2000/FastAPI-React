@@ -1,5 +1,5 @@
 from utils.token_auth import create_access_token, decode_token
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Query
 from schemas.user_schemas import UserCreateModel, UserModel, UserLoginModel, User
 from services.user_service import UserService
 from db.database import get_db
@@ -10,19 +10,23 @@ from utils.email_verify import verify_email
 from utils.password_verify import validate_password_strength, verify_password
 from datetime import timedelta
 from fastapi.responses import JSONResponse
-from core.dependencies import AccessTokenBearer
+from core.dependencies import AccessTokenBearer, get_current_user, RoleChecker
 from typing import List
 from services.evolution import fetch_instances
 
-REFRESH_TOKEN_EXPIRY = 2
-
-home_router = APIRouter(prefix=f"{get_settings().API_PREFIX}/{get_settings().API_VERSION}")
+user_router = APIRouter(prefix=f"{get_settings().API_PREFIX}/{get_settings().API_VERSION}")
 user_service = UserService()
+role_checker = RoleChecker(['admin'])
 
-@home_router.get('/users')
+@user_router.get('/users',  response_model=list[UserModel], status_code=status.HTTP_200_OK, dependencies=[Depends(role_checker)],)
 async def get_all_users(
     session: AsyncSession = Depends(get_db),
-    token_data: dict = Depends(AccessTokenBearer())  # <- garante blacklist
+    user = Depends(get_current_user),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
 ):
-    users = await fetch_instances()
-    return users
+    try:
+        users = await user_service.get_all_users(session=session, limit=limit, offset=offset)
+        return users
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro ao obter usuários")
