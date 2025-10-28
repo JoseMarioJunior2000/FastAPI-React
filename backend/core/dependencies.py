@@ -1,5 +1,5 @@
 from fastapi.security import HTTPBearer
-from fastapi import Request, status, Depends
+from fastapi import Request, status, Depends, Query
 from fastapi.exceptions import HTTPException
 from fastapi.security.http import HTTPAuthorizationCredentials
 from typing import Any, Dict, List
@@ -9,6 +9,8 @@ from services.user_service import UserService
 from utils.token_auth import decode_token
 from db.redis import token_in_blocklist
 from models.user import User
+from services.evolution_service import EvolutionService
+from core.config import get_settings
 
 user_service = UserService()
 
@@ -69,3 +71,24 @@ class RoleChecker:
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You don't have permission to access this resource"
         )
+
+def get_evolution_service() -> EvolutionService:
+    settings = get_settings()
+    return EvolutionService(
+        server_url=settings.EVO_SERVER_URL,
+        api_key=settings.EVO_API_KEY,
+        timeout=30.0,
+    )
+
+async def ensure_instance_exists(
+    instance: str = Query(..., description="Nome da instância"),
+    evo: EvolutionService = Depends(EvolutionService),
+) -> str:
+    instances = await evo.fetch_instances()
+    names = {i.name for i in instances if i.name}
+    if instance not in names:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Instância '{instance}' não encontrada"
+        )
+    return instance

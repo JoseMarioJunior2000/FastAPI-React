@@ -12,7 +12,12 @@ from datetime import timedelta
 from fastapi.responses import JSONResponse
 from core.dependencies import AccessTokenBearer, get_current_user, RoleChecker
 from typing import List
-from services.evolution import fetch_instances
+
+from schemas.evolution_schemas import (
+    EvoInstancesOut, EvoGroupsOut, EvoContactsOut, EvoMessagesOut,
+    EvoInstance, EvoGroup, EvoContact, EvoMessage,
+)
+from services.evolution_service import EvolutionService
 
 user_router = APIRouter(prefix=f"{get_settings().API_PREFIX}/{get_settings().API_VERSION}")
 user_service = UserService()

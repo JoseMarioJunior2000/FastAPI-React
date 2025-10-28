@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 import uuid
 from datetime import datetime
-from schemas.roles import Roles
+from schemas.roles_schemas import Roles
 
 class User(BaseModel):
     username: str = Field(max_length=100)
