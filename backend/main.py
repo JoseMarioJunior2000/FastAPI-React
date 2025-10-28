@@ -5,7 +5,9 @@ from routers.register import signup_router
 from routers.login import login_router
 from routers.users import user_router
 from routers.auth import auth_router
+from routers.evo import evo_router
 import uvicorn
+from routers.config import AllRoutersConfiguration
 
 app = FastAPI(
     title="Wazzy",
@@ -21,10 +23,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router=signup_router)
-app.include_router(router=login_router)
-app.include_router(router=user_router)
-app.include_router(router=auth_router)
+AllRoutersConfiguration(
+    app=app,
+    routers=[
+        signup_router,
+        login_router,
+        user_router,
+        auth_router,
+        evo_router
+    ]
+)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

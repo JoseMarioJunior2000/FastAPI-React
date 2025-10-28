@@ -4,7 +4,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Boolean, DateTime, Enum
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
-from schemas.roles import Roles
+from schemas.roles_schemas import Roles
 
 class User(Base):
     __tablename__ = "users"
