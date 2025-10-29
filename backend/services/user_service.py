@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from models.user import User
-from sqlalchemy import select
-from schemas.user_schemas import UserCreateModel
+from sqlalchemy import select, update
+from schemas.user_schemas import UserCreateModel, UserModel, UserProfileChange
 from utils.password_verify import generate_password_hash
 from sqlalchemy.future import select
 
@@ -38,3 +38,13 @@ class UserService:
         )
         result = await session.execute(statement)
         return result.scalars().all()
+    
+    async def update_profile(self, current_user: User, payload: UserProfileChange, session: AsyncSession) -> UserModel:
+        data = payload.model_dump(exclude_unset=True, exclude_none=True)
+        if not data:
+            return UserModel.model_validate(current_user, from_attributes=True)
+        statement = update(User).where(User.id == current_user.id).values(**data).returning(User)
+        result = await session.execute(statement=statement)
+        updated_entity = result.scalar_one()
+        await session.commit()
+        return UserModel.model_validate(updated_entity, from_attributes=True)

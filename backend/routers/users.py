@@ -1,6 +1,6 @@
 from utils.token_auth import create_access_token, decode_token
-from fastapi import APIRouter, Depends, status, Query
-from schemas.user_schemas import UserCreateModel, UserModel, UserLoginModel, User
+from fastapi import APIRouter, Depends, status, Query, Body
+from schemas.user_schemas import UserModel, UserProfileChange
 from services.user_service import UserService
 from db.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,12 +12,6 @@ from datetime import timedelta
 from fastapi.responses import JSONResponse
 from core.dependencies import AccessTokenBearer, get_current_user, RoleChecker
 from typing import List
-
-from schemas.evolution_schemas import (
-    EvoInstancesOut, EvoGroupsOut, EvoContactsOut, EvoMessagesOut,
-    EvoInstance, EvoGroup, EvoContact, EvoMessage,
-)
-from services.evolution_service import EvolutionService
 
 user_router = APIRouter(prefix=f"{get_settings().API_PREFIX}/{get_settings().API_VERSION}")
 user_service = UserService()
@@ -35,3 +29,14 @@ async def get_all_users(
         return users
     except Exception:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro ao obter usuários")
+    
+@user_router.patch('/profile', response_model=UserModel, status_code=status.HTTP_200_OK)
+async def change_user_profile(
+    payload: UserProfileChange = Body(...),
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+    service: UserService = Depends(UserService),
+):
+    updated = await service.update_profile(current_user=current_user, payload=payload, session=session)
+    return updated
+    
