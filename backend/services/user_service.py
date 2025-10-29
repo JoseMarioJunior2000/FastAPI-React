@@ -4,6 +4,11 @@ from sqlalchemy import select, update
 from schemas.user_schemas import UserCreateModel, UserModel, UserProfileChange
 from utils.password_verify import generate_password_hash
 from sqlalchemy.future import select
+from sqlalchemy.exc import IntegrityError
+from fastapi.exceptions import HTTPException
+from fastapi import status
+from utils.prevent_deletion import can_delete_user
+from typing import Optional
 
 class UserService:
     async def get_user_by_email(self, email: str, session: AsyncSession):
@@ -39,6 +44,18 @@ class UserService:
         result = await session.execute(statement)
         return result.scalars().all()
     
+    async def get_user_for_update(self, user_uid: str, session: AsyncSession) -> Optional[User]:
+        statement = (select(User).where(User.id == user_uid).with_for_update())
+        result = await session.execute(statement=statement)
+        return result.scalars().first() 
+    
+    async def get_user(self, user_uid: str, session: AsyncSession):
+        statement = select(User).where(User.id == user_uid)
+        result = await session.execute(statement=statement)
+        user = result.scalars().first()
+
+        return user if user is not None else None
+    
     async def update_profile(self, current_user: User, payload: UserProfileChange, session: AsyncSession) -> UserModel:
         data = payload.model_dump(exclude_unset=True, exclude_none=True)
         if not data:
@@ -48,3 +65,22 @@ class UserService:
         updated_entity = result.scalar_one()
         await session.commit()
         return UserModel.model_validate(updated_entity, from_attributes=True)
+    
+    async def delete_user(self, current_user: User, user_uid: str, session: AsyncSession):
+        user_to_deleted = await self.get_user_for_update(user_uid=user_uid, session=session)
+        if not user_to_deleted:
+            return False
+        can_delete_user(current_user=current_user, user_to_deleted=user_to_deleted)
+        try:
+            await session.delete(user_to_deleted)
+            await session.commit()
+            return True
+        except IntegrityError:
+            await session.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={
+                    "message": "User cannot be deleted due to related resources",
+                    "error_code": "user_delete_conflict",
+                },
+            )
