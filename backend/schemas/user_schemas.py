@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 import uuid
 from datetime import datetime
 from schemas.roles_schemas import Roles
+from typing import Optional
 
 class User(BaseModel):
     username: str = Field(max_length=100)
@@ -33,3 +34,8 @@ class UserModel(BaseModel):
 class UserLoginModel(BaseModel):
     email: str
     password: str = Field(exclude=True)
+
+class UserProfileChange(BaseModel):
+    first_name: Optional[str] = Field(None, max_length=25)
+    last_name:  Optional[str] = Field(None, max_length=25)
+    username:   Optional[str] = Field(None, max_length=100)
