@@ -1,5 +1,5 @@
 from utils.token_auth import create_access_token, decode_token
-from fastapi import APIRouter, Depends, status, Query, Body
+from fastapi import APIRouter, Depends, status, Query, Body, Response
 from schemas.user_schemas import UserModel, UserProfileChange
 from services.user_service import UserService
 from db.database import get_db
@@ -11,7 +11,9 @@ from utils.password_verify import validate_password_strength, verify_password
 from datetime import timedelta
 from fastapi.responses import JSONResponse
 from core.dependencies import AccessTokenBearer, get_current_user, RoleChecker
-from typing import List
+from uuid import UUID
+from models.user import User
+from utils.prevent_deletion import prevent_self_deletion
 
 user_router = APIRouter(prefix=f"{get_settings().API_PREFIX}/{get_settings().API_VERSION}")
 user_service = UserService()
@@ -20,7 +22,7 @@ role_checker = RoleChecker(['admin'])
 @user_router.get('/users',  response_model=list[UserModel], status_code=status.HTTP_200_OK, dependencies=[Depends(role_checker)],)
 async def get_all_users(
     session: AsyncSession = Depends(get_db),
-    user = Depends(get_current_user),
+    _ = Depends(get_current_user),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
 ):
@@ -39,4 +41,20 @@ async def change_user_profile(
 ):
     updated = await service.update_profile(current_user=current_user, payload=payload, session=session)
     return updated
-    
+
+@user_router.delete(
+    "/users/{user_uid}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(role_checker)]
+)
+async def delete_user(
+    user_uid: UUID, 
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Response:
+    prevent_self_deletion(current_user=current_user, user_uid=user_uid)
+    user_to_delete = await user_service.delete_user(current_user=current_user, user_uid=user_uid, session=session)
+    if not user_to_delete:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={
+                "message": "User not found",
+                "error_code": "user_not_found",
+            })
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
