@@ -14,12 +14,13 @@ from core.dependencies import AccessTokenBearer, get_current_user, RoleChecker
 from uuid import UUID
 from models.user import User
 from utils.prevent_deletion import prevent_self_deletion
+from core.dependencies import rate_limit_dep
 
 user_router = APIRouter(prefix=f"{get_settings().API_PREFIX}/{get_settings().API_VERSION}")
 user_service = UserService()
 role_checker = RoleChecker(['admin'])
 
-@user_router.get('/users',  response_model=list[UserModel], status_code=status.HTTP_200_OK, dependencies=[Depends(role_checker)],)
+@user_router.get('/users',  response_model=list[UserModel], status_code=status.HTTP_200_OK, dependencies=[Depends(role_checker), Depends(rate_limit_dep)],)
 async def get_all_users(
     session: AsyncSession = Depends(get_db),
     _ = Depends(get_current_user),

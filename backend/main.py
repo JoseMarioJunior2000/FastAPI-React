@@ -15,14 +15,6 @@ app = FastAPI(
     debug=get_settings().DEBUG
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=get_settings().ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 AllRoutersConfiguration(
     app=app,
     routers=[
@@ -32,6 +24,14 @@ AllRoutersConfiguration(
         auth_router,
         evo_router
     ]
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=get_settings().ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 if __name__ == "__main__":
