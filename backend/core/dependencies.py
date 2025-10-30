@@ -7,11 +7,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from db.database import get_db
 from services.user_service import UserService
 from utils.token_auth import decode_token
-from db.redis import token_in_blocklist
+from db.redis import token_in_blocklist, redis_client
 from models.user import User
 from services.evolution_service import EvolutionService
 from core.config import get_settings
+import time
+from redis.asyncio import Redis
+from fastapi.responses import JSONResponse
+from uuid import UUID
+from db.redis import redis_client
+from core.config import get_settings
+from core.middleware import RateLimiter
 
+rate_limiter = RateLimiter(redis_client=redis_client)
 user_service = UserService()
 
 class TokenBearer(HTTPBearer):
@@ -92,3 +100,18 @@ async def ensure_instance_exists(
             detail=f"Instância '{instance}' não encontrada"
         )
     return instance
+
+async def rate_limit_dep(
+    request: Request,
+    token_data: dict = Depends(AccessTokenBearer()),
+):
+    user = token_data.get("user") or {}
+    user_uid = user.get("user_uid")
+    if not user_uid:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid token")
+    key = f"rl:user:{user_uid}"
+    allowed = await rate_limiter.allow_request(key)
+    if not allowed:
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                            detail="Limite de requisições excedido")
