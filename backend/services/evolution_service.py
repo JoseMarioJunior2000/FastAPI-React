@@ -6,6 +6,7 @@ from fastapi import HTTPException, status
 from pydantic import BaseModel, ValidationError
 from core.config import get_settings
 from schemas.evolution_schemas import EvoInstance, EvoGroup, EvoContact, EvoMessage
+from db.redis import redis_client
 
 logger = logging.getLogger(__name__)
 T = TypeVar("T", bound=BaseModel)

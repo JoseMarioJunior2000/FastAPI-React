@@ -19,6 +19,12 @@ from schemas.evolution_schemas import (
 )
 from services.evolution_service import EvolutionService
 from utils.file_utils import is_upload_too_large
+from fastapi_cache.decorator import cache
+from db.redis import redis_client
+from services.cache_service import contacts_cache_key
+from fastapi.encoders import jsonable_encoder
+
+CACHE_TTL_SECONDS = 60
 
 evo_router = APIRouter(prefix=f"{get_settings().API_PREFIX}/{get_settings().API_VERSION}")
 role_checker = RoleChecker(['admin'])
@@ -32,7 +38,7 @@ async def evo_instances(
 @evo_router.get("/contacts", response_model=EvoContactsOut, status_code=status.HTTP_200_OK)
 async def evo_contacts(
     instance: str = Depends(ensure_instance_exists),
-    where: Optional[str] = Query(None, description="JSON de filtros, ex.: {\"pushName\": {\"$like\": \"%Maria%\"}}"),
+    where: Optional[str] = Query(None, description='JSON de filtros, ex.: {"pushName": {"$like": "%Maria%"}}'),
     evo: EvolutionService = Depends(EvolutionService),
     token_details: dict = Depends(AccessTokenBearer()),
 ):
@@ -41,7 +47,23 @@ async def evo_contacts(
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Parâmetro 'where' precisa ser um JSON válido")
 
+    cache_key = contacts_cache_key(instance, where_dict)
+
+    cached = await redis_client.get(cache_key)
+    if cached:
+        if isinstance(cached, (bytes, bytearray)):
+            cached = cached.decode("utf-8")
+        items = json.loads(cached)
+        print("há cache")
+        return EvoContactsOut(items=items)
+    print("não há cache")
     contacts = await evo.find_contacts(where=where_dict, instance=instance)
+    items_serializable = jsonable_encoder(contacts)
+    try:
+        await redis_client.setex(cache_key, CACHE_TTL_SECONDS, json.dumps(items_serializable, separators=(",", ":")))
+    except Exception as e:
+        print(f"Redis setex falhou: {e}")
+
     return EvoContactsOut(items=contacts)
 
 @evo_router.get("/groups", response_model=EvoGroupsOut, status_code=status.HTTP_200_OK)
