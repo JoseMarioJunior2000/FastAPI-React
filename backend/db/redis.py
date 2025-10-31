@@ -1,5 +1,7 @@
 from redis.asyncio import Redis
 from core.config import get_settings
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
 
 JTI_EXPIRY = 3600
 BLOCK_PREFIX = "jwt:blocklist:"
