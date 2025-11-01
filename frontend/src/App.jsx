@@ -1,11 +1,12 @@
 import './App.css'
+import Login from './pages/login/Login'
 
 function App() {
 
   return (
     <>
-      <div className="card">
-        <h1>Hello, Word</h1>
+      <div className="App">
+        <Login></Login>
       </div>
     </>
   )
