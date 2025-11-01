@@ -1,0 +1,87 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  height: 100vh;
+  color: #fff;
+}
+
+.login-image-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-image {
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-form {
+  flex: 1;
+  background: #1b1f25;
+  padding: 2rem 3rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+.login-form h1 {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.input-group {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.input-group .icon {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: #999;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+  border: none;
+  border-radius: 8px;
+  background: #2a2f38;
+  color: #fff;
+}
+
+.input-group input:focus {
+  outline: 2px solid #0bc2f0;
+}
+
+button {
+  width: 100%;
+  padding: 0.75rem;
+  background: #0bc2f0;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background: #3583e0;
+}
+
+.recall-forget {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.signup-link {
+  text-align: center;
+  font-size: 0.9rem;
+}
