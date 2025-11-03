@@ -1,7 +1,7 @@
 import { FaUser, FaLock } from 'react-icons/fa';
 import { useState } from 'react';
 import './Login.css';
-import loginImage from '../../assets/login.svg'; // ✅ importa a imagem corretamente
+import loginImage from '../../assets/login.svg';
 
 function Login() {
   const [username, setUsername] = useState('');
