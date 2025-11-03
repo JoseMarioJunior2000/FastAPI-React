@@ -5,6 +5,10 @@ from sqlalchemy import String, Boolean, DateTime, Enum
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from schemas.roles_schemas import Roles
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from models.institution import Institution
 
 class User(Base):
     __tablename__ = "users"
@@ -19,6 +23,8 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    institution: Mapped[list["Institution"]] = relationship("Institution", back_populates="users", passive_deletes=True)
 
     def __str__(self) -> str:
         return f"{self.first_name} {self.last_name} ({self.username})"

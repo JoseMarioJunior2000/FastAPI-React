@@ -5,6 +5,7 @@ function App() {
 
   return (
     <>
+      <title>Wazzy</title>
       <div className="App">
         <Login></Login>
       </div>
