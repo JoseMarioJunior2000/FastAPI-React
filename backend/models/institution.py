@@ -24,7 +24,11 @@ class Institution(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     # Relationships
-    users: Mapped[list["User"]] = relationship("User", back_populates="institution", passive_deletes=True)
+    users: Mapped[list["User"]] = relationship(
+        "User",
+        back_populates="institution",
+        passive_deletes=True,
+    )
     channels: Mapped[list["Channel"]] = relationship("Channel", back_populates="institution", passive_deletes=True)
 
     def __repr__(self):

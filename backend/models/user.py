@@ -1,7 +1,7 @@
 from db.database import Base
 from datetime import datetime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Boolean, DateTime, Enum
+from sqlalchemy import String, Boolean, DateTime, Enum, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from schemas.roles_schemas import Roles
@@ -23,7 +23,12 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
+    institution_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("institution.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     institution: Mapped[list["Institution"]] = relationship("Institution", back_populates="users", passive_deletes=True)
 
     def __str__(self) -> str:
