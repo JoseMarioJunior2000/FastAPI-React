@@ -74,9 +74,11 @@ class Channel(Base):
         cascade="all, delete-orphan",
         passive_deletes=True
     )
-
-    if TYPE_CHECKING:
-        institution: Mapped["Institution"]
+    
+    institution: Mapped["Institution"] = relationship(
+        back_populates="channels",
+        passive_deletes=True,
+    )
 
     __table_args__ = (
         Index("ix_channels_type", "channel_type_id"),

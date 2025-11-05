@@ -18,6 +18,7 @@ class UserCreateModel(BaseModel):
     email: str = Field(max_length=40)
     password: str = Field(min_length=8)
     role: Roles = Field(default=Roles.user)
+    institution_id: uuid.UUID
 
 class UserModel(BaseModel):
     id: uuid.UUID
@@ -30,6 +31,7 @@ class UserModel(BaseModel):
     created_at: datetime
     updated_at: datetime
     role: str
+    institution_id: uuid.UUID
 
 class UserLoginModel(BaseModel):
     email: str
