@@ -23,12 +23,12 @@ role_checker = RoleChecker(['admin'])
 @user_router.get('/users',  response_model=list[UserModel], status_code=status.HTTP_200_OK, dependencies=[Depends(role_checker), Depends(rate_limit_dep)],)
 async def get_all_users(
     session: AsyncSession = Depends(get_db),
-    _ = Depends(get_current_user),
+    current_user = Depends(get_current_user),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
 ):
     try:
-        users = await user_service.get_all_users(session=session, limit=limit, offset=offset)
+        users = await user_service.get_all_users(current_user=current_user, session=session, limit=limit, offset=offset)
         return users
     except Exception:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro ao obter usuários")

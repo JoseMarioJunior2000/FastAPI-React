@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import get_settings
+from routers.institution import institution_router
 from routers.register import signup_router
 from routers.login import login_router
 from routers.users import user_router
@@ -18,6 +19,7 @@ app = FastAPI(
 AllRoutersConfiguration(
     app=app,
     routers=[
+        institution_router,
         signup_router,
         login_router,
         user_router,

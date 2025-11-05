@@ -1,7 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from models.user import User
+from models.institution import Institution
 from sqlalchemy import select, update
 from schemas.user_schemas import UserCreateModel, UserModel, UserProfileChange
+from schemas.institution_schemas import InstitutionCreateModel
 from utils.password_verify import generate_password_hash
 from sqlalchemy.future import select
 from sqlalchemy.exc import IntegrityError
@@ -10,41 +11,35 @@ from fastapi import status
 from utils.prevent_deletion import can_delete_user
 from typing import Optional
 
-class UserService:
-    async def get_user_by_email(self, email: str, session: AsyncSession):
-        statement = select(User).where(User.email == email)
+class InstitutionService:
+    async def get_institution_by_email(self, email: str, session: AsyncSession):
+        statement = select(Institution).where(Institution.email == email)
         result = await session.execute(statement=statement)
-        user = result.scalars().first()
-        return user
+        institution = result.scalars().first()
+        return institution
     
-    async def user_exist(self, email: str, session: AsyncSession):
-        user = await self.get_user_by_email(email=email, session=session)
-        return True if user is not None else False
+    async def institution_exist(self, email: str, session: AsyncSession):
+        institution = await self.get_institution_by_email(email=email, session=session)
+        return True if institution is not None else False
     
-    async def create_user(self, user_data: UserCreateModel, session: AsyncSession):
-        user_data_dict = user_data.model_dump()
-        password = user_data_dict.pop("password")
-
-        new_user = User(
-            **user_data_dict,
-            password_hash=generate_password_hash(password)
-        )
-
-        session.add(new_user)
+    async def create_institution(self, institution_data: InstitutionCreateModel, session: AsyncSession):
+        institution_data = institution_data.model_dump()
+        new_institution = Institution(**institution_data)
+        session.add(new_institution)
         await session.commit()
-        return new_user
+        return new_institution
     
-    async def get_all_users(self, current_user: User, session: AsyncSession, limit: int = 50, offset: int = 0):
+    async def get_all_institutions(self, session: AsyncSession, limit: int = 50, offset: int = 0):
         statement = (
-            select(User)
-            .where(User.institution_id == current_user.institution_id)
-            .order_by(User.created_at.desc())
+            select(Institution)
+            .order_by(Institution.created_at.desc())
             .limit(limit)
             .offset(offset)
         )
         result = await session.execute(statement)
         return result.scalars().all()
     
+    """
     async def get_user_for_update(self, user_uid: str, session: AsyncSession) -> Optional[User]:
         statement = (select(User).where(User.id == user_uid).with_for_update())
         result = await session.execute(statement=statement)
@@ -85,3 +80,4 @@ class UserService:
                     "error_code": "user_delete_conflict",
                 },
             )
+    """
