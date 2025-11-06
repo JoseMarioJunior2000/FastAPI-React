@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     EVO_SERVER_URL: str
     EVO_API_KEY: str
 
+    @property
+    def SYNC_DB_URL(self) -> str:
+        return self.SQLALCHEMY_DATABASE_URL.replace("+asyncpg", "+psycopg2")
+
     @field_validator("ALLOWED_ORIGINS")
     def parse_allowed_origins(cls, v: str) -> List[str]:
         return v.split(',') if v else []

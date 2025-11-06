@@ -1,5 +1,5 @@
 from utils.token_auth import create_access_token, decode_token
-from fastapi import APIRouter, Depends, status, Query, File, UploadFile
+from fastapi import APIRouter, Depends, status, Query, File, UploadFile, Form
 from schemas.user_schemas import UserCreateModel, UserModel, UserLoginModel, User
 from services.user_service import UserService
 from db.database import get_db
@@ -11,7 +11,7 @@ from utils.password_verify import validate_password_strength, verify_password
 from datetime import timedelta
 from fastapi.responses import JSONResponse
 from core.dependencies import AccessTokenBearer, get_current_user, RoleChecker, ensure_instance_exists
-from typing import List, Optional
+from typing import List, Optional, Literal
 import json
 from schemas.evolution_schemas import (
     EvoInstancesOut, EvoGroupsOut, EvoContactsOut, EvoMessagesOut,
@@ -23,6 +23,7 @@ from fastapi_cache.decorator import cache
 from db.redis import redis_client
 from services.cache_service import contacts_cache_key
 from fastapi.encoders import jsonable_encoder
+from models.message import MessageMedia
 
 CACHE_TTL_SECONDS = 60
 
@@ -76,10 +77,26 @@ async def evo_groups(
     return EvoGroupsOut(items=groups)
 
 @evo_router.post("/file")
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(file: UploadFile = File(...), 
+    media_type: Literal["image", "document"] = Form(...),
+    session: AsyncSession = Depends(get_db)
+):
     if await is_upload_too_large(file):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Arquivo excede o limite de 10 MB."
         )
+    media_bytes = await file.read()
+    entity = MessageMedia(
+        media_name=file.filename,
+        media_type=media_type,
+        media_data=media_bytes
+    )
+    try:
+        session.add(entity)
+        await session.commit()
+        await session.refresh(entity)
+    except Exception as e:
+        await session.rollback()
+        raise HTTPException(detail=e)
     return {"filename": file.filename, "content_type": file.content_type}
