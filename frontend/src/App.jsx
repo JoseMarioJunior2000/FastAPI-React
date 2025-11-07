@@ -1,16 +1,12 @@
-import './App.css'
-import Login from './pages/login/Login'
+// src/App.jsx
+import { Routes, Route } from "react-router-dom";
+import LoginPage from "./pages/login/LoginPage";
 
-function App() {
-
+export default function App() {
   return (
-    <>
-      <title>Wazzy</title>
-      <div className="App">
-        <Login></Login>
-      </div>
-    </>
-  )
+    <Routes>
+      <Route path="/" element={<LoginPage />} />
+      <Route path="/login" element={<LoginPage />} />
+    </Routes>
+  );
 }
-
-export default App
