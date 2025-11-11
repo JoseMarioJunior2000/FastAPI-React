@@ -11,6 +11,10 @@ class User(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+class UserPublic(BaseModel):
+    uid: str
+    email: str = Field(max_length=40)
+
 class UserCreateModel(BaseModel):
     first_name: str = Field(max_length=25)
     last_name: str = Field(max_length=25)

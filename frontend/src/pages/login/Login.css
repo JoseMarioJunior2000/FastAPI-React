@@ -208,3 +208,10 @@ body{
     align-items: flex-start;
   }
 }
+
+.error-message {
+  color: #e63946;
+  text-align: center;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
