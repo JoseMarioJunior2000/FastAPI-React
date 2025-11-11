@@ -8,7 +8,7 @@ from fastapi import status
 import logging
 from src.core.erros import InvalidToken, InvalidTokenError
 
-ACCESS_TOKEN_EXPIRY = 3600
+ACCESS_TOKEN_EXPIRY = 900
 
 def serialize_roles(roles):
     return [role.name for role in roles] if roles else []

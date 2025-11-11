@@ -14,12 +14,13 @@ from src.core.dependencies import RefreshTokenBearer, AccessTokenBearer, get_cur
 from datetime import datetime
 from src.db.redis import add_jti_to_blocklist
 from src.core.erros import InvalidToken, InvalidJTI
+from src.schemas.roles_schemas import Roles
 
 auth_router = APIRouter(prefix=f"{get_settings().API_PREFIX}/{get_settings().API_VERSION}")
 user_service = UserService()
 role_checker = RoleChecker(['admin', 'user'])
 
-@auth_router.get('/refresh')
+@auth_router.get('auth/refresh')
 async def get_new_access_token(token_details: dict = Depends(RefreshTokenBearer())):
     expiry_timestamp = token_details['exp']
     if datetime.fromtimestamp(expiry_timestamp) > datetime.utcnow():

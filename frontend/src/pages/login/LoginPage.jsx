@@ -1,39 +1,33 @@
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LoginForm from "../../components/forms/LoginForm";
+import { loginUser } from "../../api/auth";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async ({ email, password }) => {
+    setError("");
+    setLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/api/v1/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        alert(errorData.detail || "Erro ao fazer login");
-        return;
-      }
-
-      const data = await response.json();
-      // Retirar console.log. Feito apenas para depuração em dev
-      console.log("✅ Login bem-sucedido:", data);
-
+      const data = await loginUser(email, password);
       localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("refresh_token", data.refresh_token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      navigate("/");
-    } catch (error) {
-      console.error("Erro:", error);
-      alert("Erro de conexão com o servidor");
+      if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
+      navigate("/", { replace: true });
+    } catch {
+      setError("Credenciais inválidas ou erro na autenticação.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  return <LoginForm onSubmit={handleSubmit} />;
+  return (
+    <LoginForm
+      onSubmit={handleSubmit}
+      loading={loading}
+      errorMessage={error}
+    />
+  );
 }

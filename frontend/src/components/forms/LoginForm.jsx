@@ -3,7 +3,7 @@ import { FaUser, FaLock } from "react-icons/fa";
 import "../../pages/login/Login.css";
 import loginImage from "../../assets/login.svg";
 
-export default function LoginForm({ onSubmit }) {
+export default function LoginForm({ onSubmit, errorMessage, loading }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -23,6 +23,11 @@ export default function LoginForm({ onSubmit }) {
         >
           <h1>Acesse o sistema</h1>
 
+          {/* Mensagem de erro */}
+          {errorMessage && (
+            <p className="error-message">{errorMessage}</p>
+          )}
+          
           <div className="input-group">
             <FaUser className="icon" />
             <input
@@ -54,7 +59,9 @@ export default function LoginForm({ onSubmit }) {
             <a href="#">Esqueceu a senha?</a>
           </div>
 
-          <button type="submit">Entrar</button>
+          <button type="submit" disabled={loading}>
+            {loading ? "Entrando..." : "Entrar"}
+          </button>
 
           <div className="signup-link">
             <p>
