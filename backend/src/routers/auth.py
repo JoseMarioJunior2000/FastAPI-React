@@ -15,6 +15,8 @@ from datetime import datetime
 from src.db.redis import add_jti_to_blocklist
 from src.core.erros import InvalidToken, InvalidJTI
 from src.schemas.roles_schemas import Roles
+from src.schemas.emails_schemas import EmailModel
+from src.core.mail import mail, create_message
 
 auth_router = APIRouter(prefix=f"{get_settings().API_PREFIX}/{get_settings().API_VERSION}")
 user_service = UserService()
@@ -43,3 +45,18 @@ async def revooke_token(token_details: dict = Depends(AccessTokenBearer())):
 @auth_router.get("/me", response_model=UserModel)
 async def get_current_user(user = Depends(get_current_user), _: bool = Depends(role_checker)):
     return user
+
+@auth_router.post("/send_mail")
+async def send_mail_account(emails: EmailModel):
+    recipients_list = emails.addresses 
+    subject = emails.subject
+    body_content = emails.body
+    
+    message = create_message(
+        recipients=recipients_list,
+        subject=subject,
+        body=body_content
+    )
+
+    await mail.send_message(message=message)
+    return {"message": "Email sent successfully"}
