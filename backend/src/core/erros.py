@@ -19,6 +19,7 @@ class InsufficientPermission(BooklyException): ...
 class UserNotFound(BooklyException): ...
 class InvalidJTI(BooklyException): ...
 class UserDeleteConflictError(BooklyException): ...
+class UserCreateError(BooklyException): ...
 class InvalidTokenError(BooklyException): ...
 class AccountNotVerified(BooklyException):
     """Account not yet verified"""
@@ -39,6 +40,13 @@ def register_all_errors(app: FastAPI):
         create_exception_handler(
             status_code=status.HTTP_403_FORBIDDEN,
             initial_detail={"message": "User with email already exists", "error_code": "user_exists"},
+        ),
+    )
+    app.add_exception_handler(
+        UserCreateError,
+        create_exception_handler(
+            status_code=status.HTTP_409_CONFLICT,
+            initial_detail={"message": "User creation failed", "error_code": "user_creation_failed"},
         ),
     )
     app.add_exception_handler(

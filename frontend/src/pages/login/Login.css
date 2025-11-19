@@ -47,6 +47,8 @@ body{
   grid-template-columns: 1fr 520px; /* imagem | card */
   align-items: center;
   gap: 48px;
+  background: var(--card);
+  border-radius: 12px;
 }
 
 /* fallback se você não usar a div .inner */

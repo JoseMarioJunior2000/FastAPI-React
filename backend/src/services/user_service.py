@@ -7,7 +7,8 @@ from sqlalchemy.future import select
 from sqlalchemy.exc import IntegrityError
 from src.utils.prevent_deletion import can_delete_user
 from typing import Optional
-from src.core.erros import UserDeleteConflictError
+from src.core.erros import UserDeleteConflictError, UserCreateError
+from httpx import _status_codes
 
 class UserService:
     async def get_user_by_email(self, email: str, session: AsyncSession):
@@ -28,10 +29,16 @@ class UserService:
             **user_data_dict,
             password_hash=generate_password_hash(password)
         )
-
-        session.add(new_user)
-        await session.commit()
-        return new_user
+        try:
+            session.add(new_user)
+            await session.commit()
+            return new_user
+        except Exception as e:
+            await session.rollback()
+            raise UserCreateError(
+            status_code=500,
+            detail={"message": f"Internal database error: {e}", "error_code": "db_error"}
+        )
     
     async def get_all_users(self, current_user: User, session: AsyncSession, limit: int = 50, offset: int = 0):
         statement = (

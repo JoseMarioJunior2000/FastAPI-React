@@ -28,3 +28,11 @@ class InstitutionModel(BaseModel):
     cnpj: str
     created_at: datetime
     updated_at: datetime
+
+class InstitutionUserCreateModel(BaseModel):
+    first_name: str = Field(max_length=25)
+    last_name: str = Field(max_length=25)
+    username: str = Field(max_length=100)
+    email: str = Field(max_length=40)
+    role: Roles = Field(default=Roles.admin)
+    institution_id: uuid.UUID

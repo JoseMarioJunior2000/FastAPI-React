@@ -13,6 +13,7 @@ dependencies = [
     "email-validator>=2.3.0",
     "fastapi>=0.119.1",
     "fastapi-cache2>=0.2.2",
+    "fastapi-mail>=1.5.8",
     "httpx>=0.28.1",
     "passlib[argon2]>=1.7.4",
     "password-validator>=1.0",

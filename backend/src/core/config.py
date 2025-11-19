@@ -16,6 +16,13 @@ class Settings(BaseSettings):
     REDIS_PASSWORD: str
     EVO_SERVER_URL: str
     EVO_API_KEY: str
+    MAIL_USERNAME: str
+    MAIL_PASSWORD: str
+    MAIL_PORT: int
+    MAIL_SERVER: str
+    MAIL_FROM_NAME: str
+    MAIL_FROM: str
+    BACKEND_PORT: int
 
     @property
     def SYNC_DB_URL(self) -> str:
