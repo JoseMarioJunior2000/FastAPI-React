@@ -1,5 +1,5 @@
 from src.utils.token_auth import create_access_token, decode_token
-from fastapi import APIRouter, Depends, status, Query, Body, Response
+from fastapi import APIRouter, Depends, status, Query, Body, Response, Request
 from src.schemas.user_schemas import UserModel, UserProfileChange
 from src.services.user_service import UserService
 from src.db.database import get_db
@@ -15,13 +15,18 @@ from src.models.user import User
 from src.utils.prevent_deletion import prevent_self_deletion
 from src.core.dependencies import rate_limit_dep, get_current_user, RoleChecker
 from src.core.erros import UserNotFound
+from src.services.cache_service import CacheService
+from src.db.redis import redis_client
 
 user_router = APIRouter(prefix=f"{get_settings().API_PREFIX}/{get_settings().API_VERSION}")
 user_service = UserService()
 role_checker = RoleChecker(['admin'])
+cache_service = CacheService(redis_client=redis_client)
 
 @user_router.get('/users',  response_model=list[UserModel], status_code=status.HTTP_200_OK, dependencies=[Depends(role_checker), Depends(rate_limit_dep)],)
+@cache_service.cached(timeout=60, key_prefix='users')
 async def get_all_users(
+    request: Request,
     session: AsyncSession = Depends(get_db),
     current_user = Depends(get_current_user),
     limit: int = Query(50, ge=1, le=200),
