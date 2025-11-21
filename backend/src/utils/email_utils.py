@@ -1,7 +1,12 @@
 import httpx
 from src.core.config import get_settings
 
-SEND_MAIL_ENDPOINT = f"http://localhost:{get_settings().BACKEND_PORT }/api/v1/send_mail"
+config = get_settings()
+SEND_MAIL_ENDPOINT = f"""
+                    http://localhost:{config.BACKEND_PORT}/
+                    {config.API_PREFIX}/
+                    {config.API_VERSION}/send_mail
+                    """
 
 async def send_welcome_email(recipient_email: str, generated_password: str, username: str) -> None:
     """
